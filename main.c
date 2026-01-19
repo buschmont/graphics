@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "raylib.h"
 
@@ -15,76 +16,57 @@ typedef struct Edge
 	Vector3 *b;
 } Edge;
 
+typedef struct Object
+{
+	Vector3 **points;
+	Edge **edges;
+	size_t nr_points;
+	size_t nr_edges;
+} Object;
+
+Object cube(float length, Vector3 center);
+
 void draw_point(Vector2 point);
 void draw_line(Vector2 point1, Vector2 point2);
-void draw_object(Edge *object[], size_t nr_points);
+void draw_object(Object object);
 
 Vector2 project(Vector3 *point);
 Vector2 display(Vector2 point);
 
-void translate(Vector3 *object[], size_t nr_points,  float dx, float dy, float dz);
-void rotate(Vector3 **object, size_t nr_points, float phi_x, float phi_y, float phi_z);
-void rotate_x(Vector3 *object[], size_t nr_points, float phi);
-void rotate_y(Vector3 *object[], size_t nr_points, float phi);
-void rotate_z(Vector3 *object[], size_t nr_points, float phi);
+void translate(Object object, float dx, float dy, float dz);
+void rotate   (Object object, float phi_x, float phi_y, float phi_z);
+void rotate_x (Object object, float phi);
+void rotate_y (Object object, float phi);
+void rotate_z (Object object, float phi);
 
-Vector3 get_center(Vector3 **object_points, size_t nr_points);
+Vector3 get_center(Object object);
 
 
 int main()
 {
-	//define scene
-	Vector3 p0 = {1.0, 1.0, 4.0};
-	Vector3 p1 = {1.0, -1.0, 4.0};
-	Vector3 p2 = {-1.0, -1.0, 4.0};
-	Vector3 p3 = {-1.0, 1.0, 4.0};
-	Vector3 p4 = {1.0, 1.0, 6.0};
-	Vector3 p5 = {1.0, -1.0, 6.0};
-	Vector3 p6 = {-1.0, -1.0, 6.0};
-	Vector3 p7 = {-1.0, 1.0, 6.0};
-
-	Edge e0 = {&p0, &p1};
-	Edge e1 = {&p1, &p2};
-	Edge e2 = {&p2, &p3};
-	Edge e3 = {&p3, &p0};
-	Edge e4 = {&p4, &p5};
-	Edge e5 = {&p5, &p6};
-	Edge e6 = {&p6, &p7};
-	Edge e7 = {&p7, &p4};
-	Edge e8 = {&p0, &p4};
-	Edge e9 = {&p1, &p5};
-	Edge e10 = {&p2, &p6};
-	Edge e11 = {&p3, &p7};
-
-	Vector3 *cube_points[] = {&p0, &p1, &p2, &p3, &p4, &p5, &p6, &p7};
-	Edge *cube_edges[] = {&e0, &e1, &e2, &e3, &e4, &e5, &e6, &e7, &e8, &e9, &e10, &e11};
-
-	size_t nr_points_cube = sizeof(cube_points) / sizeof(cube_points[0]);
-	size_t nr_edges_cube = sizeof(cube_edges) / sizeof(cube_edges[0]);
-
-	float x_center_cube = 0.0;
-	float y_center_cube = 0.0;
-	float z_center_cube = 5.0;
-	
-	float delta_x = 0.001;
-	float delta_y = 0.002;
-	float delta_z = 0.01;
+	float delta_x = 0.0;
+	float delta_y = 0.0;
+	float delta_z = 0.0001;
 	float phi_x = 0.01;
 	float phi_y = 0.04;
 	float phi_z = 0.01;
 
+	Vector3 center = {0.0, 0.0, 5.0};
+	Object cube0 = cube(2.5, center);
+
 	InitWindow(SCREEN_SIZE, SCREEN_SIZE, "Scene");
 	SetTargetFPS(FPS);
 
+	//_LOOP
 	while (!WindowShouldClose())
 	{
 		BeginDrawing();
 		ClearBackground(BLACK);
 
-		draw_object(cube_edges, nr_edges_cube);
+		draw_object(cube0);
 
-		translate(cube_points, nr_points_cube, delta_x, delta_y, delta_z);
-		rotate(cube_points, nr_points_cube, phi_x, phi_y, phi_z); 
+		translate(cube0, delta_x, delta_y, delta_z);
+		rotate(cube0, phi_x, phi_y, phi_z); 
 
 		EndDrawing();
 	}
@@ -92,6 +74,7 @@ int main()
 	CloseWindow();
 }
 
+//_FUNCTIONS
 
 void draw_point(Vector2 point)
 {
@@ -102,13 +85,13 @@ void draw_line(Vector2 point1, Vector2 point2)
 {
 	DrawLine(point1.x, point1.y, point2.x, point2.y, COLOR);
 }
-
-void draw_object(Edge **object, size_t nr_edges)
+//_DRAW
+void draw_object(Object object)
 {
-	for (size_t i = 0; i < nr_edges; i++)
+	for (size_t i = 0; i < object.nr_edges; i++)
 	{
-		Vector2 p1 = display(project(object[i]->a));
-		Vector2 p2 = display(project(object[i]->b));
+		Vector2 p1 = display(project(object.edges[i]->a));
+		Vector2 p2 = display(project(object.edges[i]->b));
 		draw_line(p1, p2);
 	}
 }
@@ -126,71 +109,114 @@ Vector2 project(Vector3 *point)
 	return vec;
 }
 
-void translate(Vector3 **object, size_t nr_points, float dx, float dy, float dz)
+//_TRANSLATE
+void translate(Object object, float dx, float dy, float dz)
 {
-	for (int i = 0; i < nr_points; i++)
+	for (int i = 0; i < object.nr_points; i++)
 	{
-		object[i]->x += dx;
-		object[i]->y += dy;
-		object[i]->z += dz;
+		object.points[i]->x += dx;
+		object.points[i]->y += dy;
+		object.points[i]->z += dz;
 	}
 }
 
-void rotate(Vector3 **object, size_t nr_points, float phi_x, float phi_y, float phi_z)
+//_ROTATIONS
+void rotate(Object object, float phi_x, float phi_y, float phi_z)
 {
-	rotate_x(object, nr_points, phi_x);
-	rotate_y(object, nr_points, phi_y);
-	rotate_z(object, nr_points, phi_z);
+	rotate_x(object, phi_x);
+	rotate_y(object, phi_y);
+	rotate_z(object, phi_z);
 }
 
-void rotate_x(Vector3 **object, size_t nr_points, float phi)
+void rotate_x(Object object, float phi)
 {
-	Vector3 center = get_center(object, nr_points);
-	for (int i = 0; i < nr_points; i++)
+	Vector3 center = get_center(object);
+	for (int i = 0; i < object.nr_points; i++)
 	{
-		float y_prime = object[i]->y - center.y;
-		float z_prime = object[i]->z - center.z;
-		object[i]->y = center.y + y_prime*cos(phi) - z_prime*sin(phi);
-		object[i]->z = center.z + y_prime*sin(phi) + z_prime*cos(phi);
+		float y_prime = object.points[i]->y - center.y;
+		float z_prime = object.points[i]->z - center.z;
+		object.points[i]->y = center.y + y_prime*cos(phi) - z_prime*sin(phi);
+		object.points[i]->z = center.z + y_prime*sin(phi) + z_prime*cos(phi);
 	}
 }
 
-void rotate_y(Vector3 **object, size_t nr_points, float phi)
+void rotate_y(Object object, float phi)
 {
-	Vector3 center = get_center(object, nr_points);
-	for (int i = 0; i < nr_points; i++)
+	Vector3 center = get_center(object);
+	for (int i = 0; i < object.nr_points; i++)
 	{
-		float x_prime = object[i]->x - center.x;
-		float z_prime = object[i]->z - center.z;
-		object[i]->x = center.x + x_prime*cos(phi) + z_prime*sin(phi);
-		object[i]->z = center.z - x_prime*sin(phi) + z_prime*cos(phi);
+		float x_prime = object.points[i]->x - center.x;
+		float z_prime = object.points[i]->z - center.z;
+		object.points[i]->x = center.x + x_prime*cos(phi) + z_prime*sin(phi);
+		object.points[i]->z = center.z - x_prime*sin(phi) + z_prime*cos(phi);
 	}
 }
 
-void rotate_z(Vector3 **object, size_t nr_points, float phi)
+void rotate_z(Object object, float phi)
 {
-	Vector3 center = get_center(object, nr_points);
-	for (int i = 0; i < nr_points; i++)
+	Vector3 center = get_center(object);
+	for (int i = 0; i < object.nr_points; i++)
 	{
-		float x_prime = object[i]->x - center.x;
-		float y_prime = object[i]->y - center.y;
-		object[i]->x = center.x + x_prime*cos(phi) - y_prime*sin(phi);
-		object[i]->y = center.y + x_prime*sin(phi) + y_prime*cos(phi);
+		float x_prime = object.points[i]->x - center.x;
+		float y_prime = object.points[i]->y - center.y;
+		object.points[i]->x = center.x + x_prime*cos(phi) - y_prime*sin(phi);
+		object.points[i]->y = center.y + x_prime*sin(phi) + y_prime*cos(phi);
 	}
 }
 
-Vector3 get_center(Vector3 **object_points, size_t nr_points)
+Vector3 get_center(Object object)
 {
 	float x = 0;
 	float y = 0;
 	float z = 0;
-	for (int i = 0; i < nr_points; i++)
+	for (int i = 0; i < object.nr_points; i++)
 	{
-		x += object_points[i]->x;
-		y += object_points[i]->y;
-		z += object_points[i]->z;
+		x += object.points[i]->x;
+		y += object.points[i]->y;
+		z += object.points[i]->z;
 	}
-	Vector3 center = {x/nr_points, y/nr_points, z/nr_points};
+	Vector3 center = {x/object.nr_points, y/object.nr_points, z/object.nr_points};
 	return center;
+}
+
+Object cube(float length, Vector3 center)
+{
+	length = length/2;
+    Object object;
+
+    object.nr_points = 8;
+    object.nr_edges  = 12;
+
+    object.points = malloc(object.nr_points * sizeof *object.points);
+    object.edges  = malloc(object.nr_edges  * sizeof *object.edges);
+
+    Vector3 *p0 = malloc(sizeof *p0); *p0 = (Vector3){center.x + length, center.y + length, center.z - length};
+    Vector3 *p1 = malloc(sizeof *p1); *p1 = (Vector3){center.x + length, center.y - length, center.z - length};
+    Vector3 *p2 = malloc(sizeof *p2); *p2 = (Vector3){center.x - length, center.y - length, center.z - length};
+    Vector3 *p3 = malloc(sizeof *p3); *p3 = (Vector3){center.x - length, center.y + length, center.z - length};
+    Vector3 *p4 = malloc(sizeof *p4); *p4 = (Vector3){center.x + length, center.y + length, center.z + length};
+    Vector3 *p5 = malloc(sizeof *p5); *p5 = (Vector3){center.x + length, center.y - length, center.z + length};
+    Vector3 *p6 = malloc(sizeof *p6); *p6 = (Vector3){center.x - length, center.y - length, center.z + length};
+    Vector3 *p7 = malloc(sizeof *p7); *p7 = (Vector3){center.x - length, center.y + length, center.z + length};
+
+    object.points[0] = p0; object.points[1] = p1;
+    object.points[2] = p2; object.points[3] = p3;
+    object.points[4] = p4; object.points[5] = p5;
+    object.points[6] = p6; object.points[7] = p7;
+
+    object.edges[0]  = malloc(sizeof(Edge)); *object.edges[0]  = (Edge){p0,p1};
+    object.edges[1]  = malloc(sizeof(Edge)); *object.edges[1]  = (Edge){p1,p2};
+    object.edges[2]  = malloc(sizeof(Edge)); *object.edges[2]  = (Edge){p2,p3};
+    object.edges[3]  = malloc(sizeof(Edge)); *object.edges[3]  = (Edge){p3,p0};
+    object.edges[4]  = malloc(sizeof(Edge)); *object.edges[4]  = (Edge){p4,p5};
+    object.edges[5]  = malloc(sizeof(Edge)); *object.edges[5]  = (Edge){p5,p6};
+    object.edges[6]  = malloc(sizeof(Edge)); *object.edges[6]  = (Edge){p6,p7};
+    object.edges[7]  = malloc(sizeof(Edge)); *object.edges[7]  = (Edge){p7,p4};
+    object.edges[8]  = malloc(sizeof(Edge)); *object.edges[8]  = (Edge){p0,p4};
+    object.edges[9]  = malloc(sizeof(Edge)); *object.edges[9]  = (Edge){p1,p5};
+    object.edges[10] = malloc(sizeof(Edge)); *object.edges[10] = (Edge){p2,p6};
+    object.edges[11] = malloc(sizeof(Edge)); *object.edges[11] = (Edge){p3,p7};
+
+    return object;
 }
 
