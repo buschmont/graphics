@@ -36,7 +36,7 @@ Vector2 project(Vector3 *point)
 //_TRANSLATE
 void translate(Object object, float dx, float dy, float dz)
 {
-	for (int i = 0; i < object.nr_points; i++)
+	for (size_t i = 0; i < object.nr_points; i++)
 	{
 		object.points[i]->x += dx;
 		object.points[i]->y += dy;
@@ -55,7 +55,7 @@ void rotate(Object object, float phi_x, float phi_y, float phi_z)
 void rotate_x(Object object, float phi)
 {
 	Vector3 center = get_center(object);
-	for (int i = 0; i < object.nr_points; i++)
+	for (size_t i = 0; i < object.nr_points; i++)
 	{
 		float y_prime = object.points[i]->y - center.y;
 		float z_prime = object.points[i]->z - center.z;
@@ -67,7 +67,7 @@ void rotate_x(Object object, float phi)
 void rotate_y(Object object, float phi)
 {
 	Vector3 center = get_center(object);
-	for (int i = 0; i < object.nr_points; i++)
+	for (size_t i = 0; i < object.nr_points; i++)
 	{
 		float x_prime = object.points[i]->x - center.x;
 		float z_prime = object.points[i]->z - center.z;
@@ -79,7 +79,7 @@ void rotate_y(Object object, float phi)
 void rotate_z(Object object, float phi)
 {
 	Vector3 center = get_center(object);
-	for (int i = 0; i < object.nr_points; i++)
+	for (size_t i = 0; i < object.nr_points; i++)
 	{
 		float x_prime = object.points[i]->x - center.x;
 		float y_prime = object.points[i]->y - center.y;
@@ -93,7 +93,7 @@ Vector3 get_center(Object object)
 	float x = 0;
 	float y = 0;
 	float z = 0;
-	for (int i = 0; i < object.nr_points; i++)
+	for (size_t i = 0; i < object.nr_points; i++)
 	{
 		x += object.points[i]->x;
 		y += object.points[i]->y;

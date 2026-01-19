@@ -25,7 +25,6 @@ int main()
 		ClearBackground(BLACK);
 
 		draw_object(cube0);
-
 		translate(cube0, delta_x, delta_y, delta_z);
 		rotate(cube0, phi_x, phi_y, phi_z); 
 
