@@ -1,35 +1,44 @@
 #include "draw.h"
 
-void draw_point(Vector2 point)
+void draw_point(Vector2 *point)
 {
-	DrawCircle(point.x, point.y, RADIUS, COLOR);
+	if (point == NULL) return;
+	DrawCircle(point->x, point->y, RADIUS, COLOR);
+	free(point);
 }
 
-void draw_line(Vector2 point1, Vector2 point2)
+void draw_line(Vector2 *point1, Vector2 *point2)
 {
-	DrawLine(point1.x, point1.y, point2.x, point2.y, COLOR);
+	if (point1 == NULL || point2 == NULL) return;
+	DrawLine(point1->x, point1->y, point2->x, point2->y, COLOR);
+	free(point1);
+	free(point2);
 }
 //_DRAW
 void draw_object(Object object)
 {
 	for (size_t i = 0; i < object.nr_edges; i++)
 	{
-		Vector2 p1 = display(project(object.edges[i]->a));
-		Vector2 p2 = display(project(object.edges[i]->b));
+		Vector2 *p1 = display(project(object.edges[i]->a));
+		Vector2 *p2 = display(project(object.edges[i]->b));
 		draw_line(p1, p2);
 	}
 }
 
-Vector2 display(Vector2 point)
+Vector2* display(Vector2 *point)
 {
-	point.x = SCREEN_SIZE/2 * (point.x + 1);
-	point.y = SCREEN_SIZE/2 * (point.y + 1);
+	if (point == NULL) return NULL;
+	point->x = SCREEN_SIZE/2 * (point->x + 1);
+	point->y = SCREEN_SIZE/2 * (point->y + 1);
 	return point;
 }
 
-Vector2 project(Vector3 *point)
+Vector2* project(Vector3 *point)
 {
-	Vector2 vec = {point->x/point->z, point->y/point->z};
+	if (point->z <= 0) return NULL;
+	Vector2 *vec = malloc(sizeof(Vector2));
+	vec->x = point->x/point->z;
+	vec->y = point->y/point->z;
 	return vec;
 }
 

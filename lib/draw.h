@@ -25,12 +25,12 @@ typedef struct Object
 
 Object cube(float length, Vector3 center);
 
-void draw_point(Vector2 point);
-void draw_line(Vector2 point1, Vector2 point2);
+void draw_point(Vector2 *point);
+void draw_line(Vector2 *point1, Vector2 *point2);
 void draw_object(Object object);
 
-Vector2 project(Vector3 *point);
-Vector2 display(Vector2 point);
+Vector2* project(Vector3 *point);
+Vector2* display(Vector2 *point);
 
 void translate(Object object, float dx, float dy, float dz);
 void rotate   (Object object, float phi_x, float phi_y, float phi_z);
